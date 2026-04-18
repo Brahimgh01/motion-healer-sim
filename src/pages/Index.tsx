@@ -571,7 +571,7 @@ const Index = () => {
         </main>
 
         {/* RIGHT: AI Manager */}
-        <aside className="col-span-3 flex flex-col gap-3 min-h-0">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-3 lg:order-none">
           <div className="panel rounded-md p-3">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[hsl(var(--neon-cyan))]" />
