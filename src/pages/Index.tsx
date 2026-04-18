@@ -629,6 +629,46 @@ const Index = () => {
             capacity={ANCHOR_COUNT}
             active={phase === "failing" || phase === "blackout"}
           />
+
+          <EnergyFinOps
+            aliveCount={aliveCount}
+            passes={passes}
+            deliveries={deliveries}
+            tenants={tenantsCount}
+            overlap={overlap / 100}
+          />
+
+          <div className="panel rounded-md p-3 space-y-3">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Multi-Tenant Model · §4.3
+            </div>
+            <div>
+              <div className="flex justify-between text-[10px] font-mono-display mb-1">
+                <span className="text-muted-foreground">Tenants T</span>
+                <span className="text-[hsl(var(--neon-cyan))]">{tenantsCount}</span>
+              </div>
+              <Slider
+                value={[tenantsCount]}
+                onValueChange={(v) => setTenantsCount(v[0])}
+                min={1}
+                max={500}
+                step={1}
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-[10px] font-mono-display mb-1">
+                <span className="text-muted-foreground">Data Overlap s</span>
+                <span className="text-[hsl(var(--neon-cyan))]">{overlap}%</span>
+              </div>
+              <Slider
+                value={[overlap]}
+                onValueChange={(v) => setOverlap(v[0])}
+                min={0}
+                max={100}
+                step={1}
+              />
+            </div>
+          </div>
         </aside>
       </div>
     </div>
