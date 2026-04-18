@@ -61,6 +61,13 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
       const h = canvas.height / dpr;
       ctx.clearRect(0, 0, w, h);
 
+      const fragments = fragmentsRef.current;
+      const phase = phaseRef.current;
+      const healerPulse = healerPulseRef.current;
+      const countdown = countdownRef.current;
+      const vaultPos = vaultPosRef.current;
+      const nodes = nodesRef.current;
+
       const cx = w / 2;
       const cy = h / 2;
       const radius = Math.min(w, h) * 0.36;
