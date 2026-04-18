@@ -21,6 +21,20 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Keep latest props in refs so the rAF loop reads fresh values without re-running the effect.
+  const fragmentsRef = useRef(fragments);
+  const phaseRef = useRef(phase);
+  const healerPulseRef = useRef(healerPulse);
+  const countdownRef = useRef(countdown);
+  const vaultPosRef = useRef(vaultPos);
+  const nodesRef = useRef(nodes);
+  fragmentsRef.current = fragments;
+  phaseRef.current = phase;
+  healerPulseRef.current = healerPulse;
+  countdownRef.current = countdown;
+  vaultPosRef.current = vaultPos;
+  nodesRef.current = nodes;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
