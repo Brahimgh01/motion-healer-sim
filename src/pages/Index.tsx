@@ -509,6 +509,14 @@ const Index = () => {
               <span className="text-muted-foreground">20%</span>
             </div>
           </div>
+
+          <NetworkTelemetry
+            passes={passes}
+            aliveCount={aliveCount}
+            target={TARGET}
+            lossRate={lossRate}
+            nodes={NODES}
+          />
         </aside>
 
         {/* CENTER: Ring */}
