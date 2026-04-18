@@ -51,6 +51,10 @@ const Index = () => {
   const [vaultCount, setVaultCount] = useState(0);
   const [healerPulse, setHealerPulse] = useState(0);
   const healerPulseRef = useRef(0);
+  const [reconstructProgress, setReconstructProgress] = useState(0);
+  const reconstructProgressRef = useRef(0);
+  const [reconstructCollected, setReconstructCollected] = useState(0);
+  const [deliveries, setDeliveries] = useState(0);
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
