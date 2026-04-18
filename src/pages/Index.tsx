@@ -302,6 +302,14 @@ const Index = () => {
         if (lostThisTick > 0) setCumulativeLoss((c) => c + lostThisTick);
         if (healedThisTick > 0) setHealed((h) => h + healedThisTick);
 
+        // Track circulation passes (running phase only)
+        if (ph === "running") {
+          const speedMulPasses = 1;
+          passesAccumRef.current += BASE_SPEED * dt * speedMulPasses;
+          const newPasses = Math.floor(passesAccumRef.current / (Math.PI * 2));
+          setPasses((p) => (newPasses !== p ? newPasses : p));
+        }
+
         // healer pulse decay
         healerPulseRef.current = Math.max(0, healerPulseRef.current - dt / 600);
         setHealerPulse(healerPulseRef.current);
