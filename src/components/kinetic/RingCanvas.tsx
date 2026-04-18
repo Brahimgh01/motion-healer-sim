@@ -250,7 +250,7 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [fragments, phase, healerPulse, countdown, vaultPos, nodes]);
+  }, []);
 
   return (
     <div ref={containerRef} className="absolute inset-0">
