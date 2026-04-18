@@ -529,6 +529,7 @@ const Index = () => {
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-cyan))]" />
               PHASE: <span className="text-[hsl(var(--neon-cyan))]">{phase.toUpperCase()}</span>
             </span>
+            <span className="text-muted-foreground">PASSES: <span className="text-[hsl(var(--neon-cyan))]">{passes}</span></span>
             <span className="text-muted-foreground">DELIVERED: <span className="text-[hsl(var(--neon-green))]">{deliveries}</span></span>
           </div>
 
