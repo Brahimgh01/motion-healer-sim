@@ -93,6 +93,10 @@ const Index = () => {
     setVaultCount(0);
     setFingerprints([]);
     setCountdown(0);
+    reconstructProgressRef.current = 0;
+    setReconstructProgress(0);
+    setReconstructCollected(0);
+    setDeliveries(0);
   }, []);
 
   // Failure trigger
