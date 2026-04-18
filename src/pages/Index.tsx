@@ -125,7 +125,15 @@ const Index = () => {
     );
   }, []);
 
-  // Main animation/physics loop
+  // Client request: Healer collects k=148 fragments, reconstructs via FEC, delivers payload
+  const requestData = useCallback(() => {
+    if (phaseRef.current !== "running") return;
+    if (reconstructProgressRef.current > 0) return;
+    reconstructProgressRef.current = 0.001;
+    setReconstructProgress(0.001);
+    setReconstructCollected(0);
+    healerPulseRef.current = 1;
+  }, []);
   useEffect(() => {
     let raf = 0;
     const tick = (now: number) => {
