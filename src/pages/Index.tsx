@@ -86,6 +86,8 @@ const Index = () => {
     setUps(100);
     setVaultCount(0);
     setFingerprints([]);
+    setPasses(0);
+    passesAccumRef.current = 0;
     lastNodeIdxRef.current = new Map();
     setPhase("running");
   }, []);
@@ -103,6 +105,8 @@ const Index = () => {
     setReconstructProgress(0);
     setReconstructCollected(0);
     setDeliveries(0);
+    setPasses(0);
+    passesAccumRef.current = 0;
   }, []);
 
   // Failure trigger
