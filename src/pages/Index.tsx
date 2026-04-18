@@ -6,6 +6,8 @@ import { RingCanvas } from "@/components/kinetic/RingCanvas";
 import { StatPanel } from "@/components/kinetic/StatPanel";
 import { FingerprintIndex } from "@/components/kinetic/FingerprintIndex";
 import { AnchorVault } from "@/components/kinetic/AnchorVault";
+import { EnergyFinOps } from "@/components/kinetic/EnergyFinOps";
+import { NetworkTelemetry } from "@/components/kinetic/NetworkTelemetry";
 import type { Fragment, SimPhase, TenantId } from "@/components/kinetic/types";
 
 const NODES = 12;
@@ -55,6 +57,10 @@ const Index = () => {
   const reconstructProgressRef = useRef(0);
   const [reconstructCollected, setReconstructCollected] = useState(0);
   const [deliveries, setDeliveries] = useState(0);
+  const [passes, setPasses] = useState(0);
+  const passesAccumRef = useRef(0); // radians traveled accumulator
+  const [tenantsCount, setTenantsCount] = useState(100);
+  const [overlap, setOverlap] = useState(40); // %
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
@@ -80,6 +86,8 @@ const Index = () => {
     setUps(100);
     setVaultCount(0);
     setFingerprints([]);
+    setPasses(0);
+    passesAccumRef.current = 0;
     lastNodeIdxRef.current = new Map();
     setPhase("running");
   }, []);
@@ -97,6 +105,8 @@ const Index = () => {
     setReconstructProgress(0);
     setReconstructCollected(0);
     setDeliveries(0);
+    setPasses(0);
+    passesAccumRef.current = 0;
   }, []);
 
   // Failure trigger
@@ -291,6 +301,14 @@ const Index = () => {
 
         if (lostThisTick > 0) setCumulativeLoss((c) => c + lostThisTick);
         if (healedThisTick > 0) setHealed((h) => h + healedThisTick);
+
+        // Track circulation passes (running phase only)
+        if (ph === "running") {
+          const speedMulPasses = 1;
+          passesAccumRef.current += BASE_SPEED * dt * speedMulPasses;
+          const newPasses = Math.floor(passesAccumRef.current / (Math.PI * 2));
+          setPasses((p) => (newPasses !== p ? newPasses : p));
+        }
 
         // healer pulse decay
         healerPulseRef.current = Math.max(0, healerPulseRef.current - dt / 600);
@@ -491,6 +509,14 @@ const Index = () => {
               <span className="text-muted-foreground">20%</span>
             </div>
           </div>
+
+          <NetworkTelemetry
+            passes={passes}
+            aliveCount={aliveCount}
+            target={TARGET}
+            lossRate={lossRate}
+            nodes={NODES}
+          />
         </aside>
 
         {/* CENTER: Ring */}
@@ -503,6 +529,7 @@ const Index = () => {
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-cyan))]" />
               PHASE: <span className="text-[hsl(var(--neon-cyan))]">{phase.toUpperCase()}</span>
             </span>
+            <span className="text-muted-foreground">PASSES: <span className="text-[hsl(var(--neon-cyan))]">{passes}</span></span>
             <span className="text-muted-foreground">DELIVERED: <span className="text-[hsl(var(--neon-green))]">{deliveries}</span></span>
           </div>
 
@@ -603,6 +630,46 @@ const Index = () => {
             capacity={ANCHOR_COUNT}
             active={phase === "failing" || phase === "blackout"}
           />
+
+          <EnergyFinOps
+            aliveCount={aliveCount}
+            passes={passes}
+            deliveries={deliveries}
+            tenants={tenantsCount}
+            overlap={overlap / 100}
+          />
+
+          <div className="panel rounded-md p-3 space-y-3">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Multi-Tenant Model · §4.3
+            </div>
+            <div>
+              <div className="flex justify-between text-[10px] font-mono-display mb-1">
+                <span className="text-muted-foreground">Tenants T</span>
+                <span className="text-[hsl(var(--neon-cyan))]">{tenantsCount}</span>
+              </div>
+              <Slider
+                value={[tenantsCount]}
+                onValueChange={(v) => setTenantsCount(v[0])}
+                min={1}
+                max={500}
+                step={1}
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-[10px] font-mono-display mb-1">
+                <span className="text-muted-foreground">Data Overlap s</span>
+                <span className="text-[hsl(var(--neon-cyan))]">{overlap}%</span>
+              </div>
+              <Slider
+                value={[overlap]}
+                onValueChange={(v) => setOverlap(v[0])}
+                min={0}
+                max={100}
+                step={1}
+              />
+            </div>
+          </div>
         </aside>
       </div>
     </div>
