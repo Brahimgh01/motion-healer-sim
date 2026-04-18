@@ -409,8 +409,8 @@ const Index = () => {
 
       <div className="relative z-10 grid grid-cols-12 gap-3 p-3 lg:h-[calc(100vh-57px)]">
         {/* LEFT: Real-time stats */}
-        <aside className="col-span-3 flex flex-col gap-3 min-h-0">
-          <StatPanel
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-2 lg:order-none">
+
             label="Data Health"
             value={dataHealth}
             unit="%"
