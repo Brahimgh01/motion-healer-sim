@@ -8,6 +8,10 @@ interface RingCanvasProps {
   countdown: number; // seconds remaining during failure
   vaultPos: { x: number; y: number }; // normalized -0.5..1.5
   nodes: number;
+  /** 0..1 progress of an active client reconstruction delivery (beam from Healer to client) */
+  reconstructProgress?: number;
+  /** Number of fragments currently being collected for reconstruction */
+  reconstructCollected?: number;
 }
 
 const TENANT_COLORS = [
