@@ -494,7 +494,7 @@ const Index = () => {
         </aside>
 
         {/* CENTER: Ring */}
-        <main className="col-span-6 panel rounded-md relative overflow-hidden scan-line">
+        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line min-h-[560px] lg:min-h-0 order-first lg:order-none">
           <div className="absolute top-3 left-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             CIRCULATION RING · 12 NODES
           </div>
@@ -503,19 +503,25 @@ const Index = () => {
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-cyan))]" />
               PHASE: <span className="text-[hsl(var(--neon-cyan))]">{phase.toUpperCase()}</span>
             </span>
+            <span className="text-muted-foreground">DELIVERED: <span className="text-[hsl(var(--neon-green))]">{deliveries}</span></span>
           </div>
 
-          <RingCanvas
-            fragments={fragments}
-            phase={phase}
-            healerPulse={healerPulse}
-            countdown={countdown}
-            vaultPos={{ x: 1.08, y: 0.5 }} // offscreen-right toward sidebar (will appear to fly out)
-            nodes={NODES}
-          />
+          {/* Canvas area — explicit height so it never collapses below controls */}
+          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)]">
+            <RingCanvas
+              fragments={fragments}
+              phase={phase}
+              healerPulse={healerPulse}
+              countdown={countdown}
+              vaultPos={{ x: 1.08, y: 0.5 }}
+              nodes={NODES}
+              reconstructProgress={reconstructProgress}
+              reconstructCollected={reconstructCollected}
+            />
+          </div>
 
           {/* Bottom controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-wrap items-center justify-center gap-2 border-t border-border/40 bg-background/60 backdrop-blur">
+          <div className="relative lg:absolute lg:bottom-0 left-0 right-0 p-3 flex flex-wrap items-center justify-center gap-2 border-t border-border/40 bg-background/60 backdrop-blur">
             <Button
               onClick={initialize}
               disabled={phase !== "idle"}
@@ -524,6 +530,15 @@ const Index = () => {
             >
               <Zap className="h-4 w-4 mr-1.5" />
               INITIALIZE
+            </Button>
+            <Button
+              onClick={requestData}
+              disabled={phase !== "running" || reconstructProgress > 0}
+              className="font-mono-display tracking-wider bg-[hsl(var(--neon-green))] text-accent-foreground hover:bg-[hsl(var(--neon-green)/0.85)]"
+              style={{ boxShadow: "var(--shadow-green)" }}
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              REQUEST DATA
             </Button>
             <Button
               onClick={triggerFailure}
