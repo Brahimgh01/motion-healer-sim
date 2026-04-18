@@ -21,7 +21,16 @@ const TENANT_COLORS = [
 ];
 const GOLD = "hsl(45, 100%, 60%)";
 
-export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos, nodes }: RingCanvasProps) {
+export function RingCanvas({
+  fragments,
+  phase,
+  healerPulse,
+  countdown,
+  vaultPos,
+  nodes,
+  reconstructProgress = 0,
+  reconstructCollected = 0,
+}: RingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,12 +41,16 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
   const countdownRef = useRef(countdown);
   const vaultPosRef = useRef(vaultPos);
   const nodesRef = useRef(nodes);
+  const reconstructProgressRef = useRef(reconstructProgress);
+  const reconstructCollectedRef = useRef(reconstructCollected);
   fragmentsRef.current = fragments;
   phaseRef.current = phase;
   healerPulseRef.current = healerPulse;
   countdownRef.current = countdown;
   vaultPosRef.current = vaultPos;
   nodesRef.current = nodes;
+  reconstructProgressRef.current = reconstructProgress;
+  reconstructCollectedRef.current = reconstructCollected;
 
   useEffect(() => {
     const canvas = canvasRef.current;
