@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Power, RotateCw, Zap, Cpu, ShieldCheck } from "lucide-react";
+import { Activity, Power, RotateCw, Zap, Cpu, ShieldCheck, Download } from "lucide-react";
 import { RingCanvas } from "@/components/kinetic/RingCanvas";
 import { StatPanel } from "@/components/kinetic/StatPanel";
 import { FingerprintIndex } from "@/components/kinetic/FingerprintIndex";
