@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Power, RotateCw, Zap, Cpu, ShieldCheck } from "lucide-react";
+import { Activity, Power, RotateCw, Zap, Cpu, ShieldCheck, Download } from "lucide-react";
 import { RingCanvas } from "@/components/kinetic/RingCanvas";
 import { StatPanel } from "@/components/kinetic/StatPanel";
 import { FingerprintIndex } from "@/components/kinetic/FingerprintIndex";
@@ -51,6 +51,10 @@ const Index = () => {
   const [vaultCount, setVaultCount] = useState(0);
   const [healerPulse, setHealerPulse] = useState(0);
   const healerPulseRef = useRef(0);
+  const [reconstructProgress, setReconstructProgress] = useState(0);
+  const reconstructProgressRef = useRef(0);
+  const [reconstructCollected, setReconstructCollected] = useState(0);
+  const [deliveries, setDeliveries] = useState(0);
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
@@ -89,6 +93,10 @@ const Index = () => {
     setVaultCount(0);
     setFingerprints([]);
     setCountdown(0);
+    reconstructProgressRef.current = 0;
+    setReconstructProgress(0);
+    setReconstructCollected(0);
+    setDeliveries(0);
   }, []);
 
   // Failure trigger
@@ -121,7 +129,15 @@ const Index = () => {
     );
   }, []);
 
-  // Main animation/physics loop
+  // Client request: Healer collects k=148 fragments, reconstructs via FEC, delivers payload
+  const requestData = useCallback(() => {
+    if (phaseRef.current !== "running") return;
+    if (reconstructProgressRef.current > 0) return;
+    reconstructProgressRef.current = 0.001;
+    setReconstructProgress(0.001);
+    setReconstructCollected(0);
+    healerPulseRef.current = 1;
+  }, []);
   useEffect(() => {
     let raf = 0;
     const tick = (now: number) => {
@@ -319,6 +335,27 @@ const Index = () => {
         });
       }
 
+      // UPS recharge while not draining (running / restoring / idle after restore)
+      if (phaseRef.current === "running" || phaseRef.current === "restoring" || phaseRef.current === "idle") {
+        setUps((u) => (u >= 100 ? 100 : Math.min(100, u + dt / 80)));
+      }
+
+      // Reconstruction progress — Healer collects k=148 then beams to client
+      if (reconstructProgressRef.current > 0 && reconstructProgressRef.current < 1) {
+        const np = Math.min(1, reconstructProgressRef.current + dt / 2200);
+        reconstructProgressRef.current = np;
+        setReconstructProgress(np);
+        // Collected symbols climb during 0..0.5
+        const collected = np < 0.5 ? Math.floor((np / 0.5) * 148) : 148;
+        setReconstructCollected(collected);
+        if (np >= 1) {
+          reconstructProgressRef.current = 0;
+          setReconstructProgress(0);
+          setReconstructCollected(0);
+          setDeliveries((d) => d + 1);
+        }
+      }
+
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -370,9 +407,9 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="relative z-10 grid grid-cols-12 gap-3 p-3 h-[calc(100vh-57px)]">
+      <div className="relative z-10 grid grid-cols-12 gap-3 p-3 lg:h-[calc(100vh-57px)]">
         {/* LEFT: Real-time stats */}
-        <aside className="col-span-3 flex flex-col gap-3 min-h-0">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-2 lg:order-none">
           <StatPanel
             label="Data Health"
             value={dataHealth}
@@ -457,7 +494,7 @@ const Index = () => {
         </aside>
 
         {/* CENTER: Ring */}
-        <main className="col-span-6 panel rounded-md relative overflow-hidden scan-line">
+        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line min-h-[560px] lg:min-h-0 order-first lg:order-none">
           <div className="absolute top-3 left-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             CIRCULATION RING · 12 NODES
           </div>
@@ -466,19 +503,25 @@ const Index = () => {
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--neon-cyan))]" />
               PHASE: <span className="text-[hsl(var(--neon-cyan))]">{phase.toUpperCase()}</span>
             </span>
+            <span className="text-muted-foreground">DELIVERED: <span className="text-[hsl(var(--neon-green))]">{deliveries}</span></span>
           </div>
 
-          <RingCanvas
-            fragments={fragments}
-            phase={phase}
-            healerPulse={healerPulse}
-            countdown={countdown}
-            vaultPos={{ x: 1.08, y: 0.5 }} // offscreen-right toward sidebar (will appear to fly out)
-            nodes={NODES}
-          />
+          {/* Canvas area — explicit height so it never collapses below controls */}
+          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)]">
+            <RingCanvas
+              fragments={fragments}
+              phase={phase}
+              healerPulse={healerPulse}
+              countdown={countdown}
+              vaultPos={{ x: 1.08, y: 0.5 }}
+              nodes={NODES}
+              reconstructProgress={reconstructProgress}
+              reconstructCollected={reconstructCollected}
+            />
+          </div>
 
           {/* Bottom controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-wrap items-center justify-center gap-2 border-t border-border/40 bg-background/60 backdrop-blur">
+          <div className="relative lg:absolute lg:bottom-0 left-0 right-0 p-3 flex flex-wrap items-center justify-center gap-2 border-t border-border/40 bg-background/60 backdrop-blur">
             <Button
               onClick={initialize}
               disabled={phase !== "idle"}
@@ -487,6 +530,15 @@ const Index = () => {
             >
               <Zap className="h-4 w-4 mr-1.5" />
               INITIALIZE
+            </Button>
+            <Button
+              onClick={requestData}
+              disabled={phase !== "running" || reconstructProgress > 0}
+              className="font-mono-display tracking-wider bg-[hsl(var(--neon-green))] text-accent-foreground hover:bg-[hsl(var(--neon-green)/0.85)]"
+              style={{ boxShadow: "var(--shadow-green)" }}
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              REQUEST DATA
             </Button>
             <Button
               onClick={triggerFailure}
@@ -519,7 +571,7 @@ const Index = () => {
         </main>
 
         {/* RIGHT: AI Manager */}
-        <aside className="col-span-3 flex flex-col gap-3 min-h-0">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-3 lg:order-none">
           <div className="panel rounded-md p-3">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[hsl(var(--neon-cyan))]" />

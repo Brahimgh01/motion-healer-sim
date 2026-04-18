@@ -8,6 +8,10 @@ interface RingCanvasProps {
   countdown: number; // seconds remaining during failure
   vaultPos: { x: number; y: number }; // normalized -0.5..1.5
   nodes: number;
+  /** 0..1 progress of an active client reconstruction delivery (beam from Healer to client) */
+  reconstructProgress?: number;
+  /** Number of fragments currently being collected for reconstruction */
+  reconstructCollected?: number;
 }
 
 const TENANT_COLORS = [
@@ -17,7 +21,16 @@ const TENANT_COLORS = [
 ];
 const GOLD = "hsl(45, 100%, 60%)";
 
-export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos, nodes }: RingCanvasProps) {
+export function RingCanvas({
+  fragments,
+  phase,
+  healerPulse,
+  countdown,
+  vaultPos,
+  nodes,
+  reconstructProgress = 0,
+  reconstructCollected = 0,
+}: RingCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -28,12 +41,16 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
   const countdownRef = useRef(countdown);
   const vaultPosRef = useRef(vaultPos);
   const nodesRef = useRef(nodes);
+  const reconstructProgressRef = useRef(reconstructProgress);
+  const reconstructCollectedRef = useRef(reconstructCollected);
   fragmentsRef.current = fragments;
   phaseRef.current = phase;
   healerPulseRef.current = healerPulse;
   countdownRef.current = countdown;
   vaultPosRef.current = vaultPos;
   nodesRef.current = nodes;
+  reconstructProgressRef.current = reconstructProgress;
+  reconstructCollectedRef.current = reconstructCollected;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -220,6 +237,77 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
       }
       ctx.shadowBlur = 0;
 
+      // Reconstruction beam: Healer (Node 6) → Client (right edge of canvas)
+      const reconstructProgress = reconstructProgressRef.current;
+      const reconstructCollected = reconstructCollectedRef.current;
+      if (reconstructProgress > 0 && reconstructProgress < 1) {
+        const ha = (5 / nodes) * Math.PI * 2 - Math.PI / 2;
+        const hx = cx + Math.cos(ha) * radius;
+        const hy = cy + Math.sin(ha) * radius;
+        const targetX = w - 12;
+        const targetY = h / 2;
+
+        // Convergence phase 0..0.5: gather fragments toward Healer (faint inward arrows)
+        // Delivery phase 0.5..1: beam from Healer to client
+        if (reconstructProgress < 0.5) {
+          const t = reconstructProgress / 0.5;
+          ctx.strokeStyle = `hsla(142, 90%, 60%, ${0.15 + t * 0.35})`;
+          ctx.lineWidth = 1;
+          for (let i = 0; i < Math.min(fragments.length, 80); i++) {
+            const f = fragments[i];
+            if (!f.alive) continue;
+            const fx = cx + Math.cos(f.angle) * radius;
+            const fy = cy + Math.sin(f.angle) * radius;
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(fx + (hx - fx) * t * 0.4, fy + (hy - fy) * t * 0.4);
+            ctx.stroke();
+          }
+          // Healer charging glow
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = "hsl(142, 90%, 60%)";
+          ctx.fillStyle = `hsla(142, 90%, 60%, ${0.3 + t * 0.5})`;
+          ctx.beginPath();
+          ctx.arc(hx, hy, 14 + t * 10, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const t = (reconstructProgress - 0.5) / 0.5;
+          // Beam line
+          const grad2 = ctx.createLinearGradient(hx, hy, targetX, targetY);
+          grad2.addColorStop(0, "hsla(142, 90%, 60%, 0.9)");
+          grad2.addColorStop(1, "hsla(180, 100%, 65%, 0.0)");
+          ctx.strokeStyle = grad2;
+          ctx.lineWidth = 2.5;
+          ctx.shadowBlur = 16;
+          ctx.shadowColor = "hsl(142, 90%, 60%)";
+          ctx.beginPath();
+          ctx.moveTo(hx, hy);
+          ctx.lineTo(hx + (targetX - hx) * t, hy + (targetY - hy) * t);
+          ctx.stroke();
+          // Packet head
+          const px2 = hx + (targetX - hx) * t;
+          const py2 = hy + (targetY - hy) * t;
+          ctx.shadowBlur = 24;
+          ctx.shadowColor = "hsl(180, 100%, 65%)";
+          ctx.fillStyle = "hsl(180, 100%, 70%)";
+          ctx.beginPath();
+          ctx.arc(px2, py2, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+
+        // Status label
+        ctx.font = "bold 11px ui-monospace, monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "hsl(142, 90%, 75%)";
+        const phaseLabel =
+          reconstructProgress < 0.5
+            ? `RECONSTRUCTING · ${reconstructCollected}/148 SYMBOLS`
+            : "DELIVERING TO CLIENT";
+        ctx.fillText(phaseLabel, cx, cy - 22);
+      }
+
       // Countdown overlay
       if (phase === "failing" || phase === "blackout") {
         ctx.font = "bold 64px ui-monospace, monospace";
@@ -234,7 +322,7 @@ export function RingCanvas({ fragments, phase, healerPulse, countdown, vaultPos,
         ctx.shadowBlur = 0;
         ctx.fillStyle = "hsla(180, 60%, 80%, 0.7)";
         ctx.fillText(phase === "failing" ? "UPS COUNTDOWN — ANCHORING SEED" : "AWAITING RESTORE", cx, cy + 36);
-      } else {
+      } else if (reconstructProgress === 0) {
         ctx.font = "10px ui-monospace, monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
