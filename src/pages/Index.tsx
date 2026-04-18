@@ -331,6 +331,27 @@ const Index = () => {
         });
       }
 
+      // UPS recharge while not draining (running / restoring / idle after restore)
+      if (phaseRef.current === "running" || phaseRef.current === "restoring" || phaseRef.current === "idle") {
+        setUps((u) => (u >= 100 ? 100 : Math.min(100, u + dt / 80)));
+      }
+
+      // Reconstruction progress — Healer collects k=148 then beams to client
+      if (reconstructProgressRef.current > 0 && reconstructProgressRef.current < 1) {
+        const np = Math.min(1, reconstructProgressRef.current + dt / 2200);
+        reconstructProgressRef.current = np;
+        setReconstructProgress(np);
+        // Collected symbols climb during 0..0.5
+        const collected = np < 0.5 ? Math.floor((np / 0.5) * 148) : 148;
+        setReconstructCollected(collected);
+        if (np >= 1) {
+          reconstructProgressRef.current = 0;
+          setReconstructProgress(0);
+          setReconstructCollected(0);
+          setDeliveries((d) => d + 1);
+        }
+      }
+
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
