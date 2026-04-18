@@ -6,6 +6,8 @@ import { RingCanvas } from "@/components/kinetic/RingCanvas";
 import { StatPanel } from "@/components/kinetic/StatPanel";
 import { FingerprintIndex } from "@/components/kinetic/FingerprintIndex";
 import { AnchorVault } from "@/components/kinetic/AnchorVault";
+import { EnergyFinOps } from "@/components/kinetic/EnergyFinOps";
+import { NetworkTelemetry } from "@/components/kinetic/NetworkTelemetry";
 import type { Fragment, SimPhase, TenantId } from "@/components/kinetic/types";
 
 const NODES = 12;
@@ -55,6 +57,10 @@ const Index = () => {
   const reconstructProgressRef = useRef(0);
   const [reconstructCollected, setReconstructCollected] = useState(0);
   const [deliveries, setDeliveries] = useState(0);
+  const [passes, setPasses] = useState(0);
+  const passesAccumRef = useRef(0); // radians traveled accumulator
+  const [tenantsCount, setTenantsCount] = useState(100);
+  const [overlap, setOverlap] = useState(40); // %
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
