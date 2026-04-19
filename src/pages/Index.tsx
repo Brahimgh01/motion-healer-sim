@@ -427,9 +427,9 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="relative z-10 grid grid-cols-12 gap-3 p-3 lg:h-[calc(100vh-57px)]">
+      <div className="relative z-10 grid grid-cols-12 gap-3 p-3">
         {/* LEFT: Real-time stats */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-2 lg:order-none">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 order-2 lg:order-none">
           <StatPanel
             label="Data Health"
             value={dataHealth}
@@ -522,7 +522,7 @@ const Index = () => {
         </aside>
 
         {/* CENTER: Ring */}
-        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line min-h-[560px] lg:min-h-0 order-first lg:order-none">
+        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line lg:sticky lg:top-3 lg:self-start lg:h-[calc(100vh-80px)] order-first lg:order-none">
           <div className="absolute top-3 left-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             CIRCULATION RING · {nodes} NODES
           </div>
@@ -536,7 +536,7 @@ const Index = () => {
           </div>
 
           {/* Canvas area — explicit height so it never collapses below controls */}
-          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)]">
+          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)] mt-9 lg:mt-0">
             <RingCanvas
               fragments={fragments}
               phase={phase}
@@ -600,7 +600,7 @@ const Index = () => {
         </main>
 
         {/* RIGHT: AI Manager */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-3 lg:order-none">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 order-3 lg:order-none">
           <div className="panel rounded-md p-3">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[hsl(var(--neon-cyan))]" />
