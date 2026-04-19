@@ -10,7 +10,6 @@ import { EnergyFinOps } from "@/components/kinetic/EnergyFinOps";
 import { NetworkTelemetry } from "@/components/kinetic/NetworkTelemetry";
 import type { Fragment, SimPhase, TenantId } from "@/components/kinetic/types";
 
-const NODES = 12;
 const TARGET = 200;
 const ANCHOR_COUNT = 10; // 5%
 const BASE_SPEED = 0.0018; // rad/ms
@@ -61,6 +60,9 @@ const Index = () => {
   const passesAccumRef = useRef(0); // radians traveled accumulator
   const [tenantsCount, setTenantsCount] = useState(100);
   const [overlap, setOverlap] = useState(40); // %
+  const [nodes, setNodes] = useState(12);
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
