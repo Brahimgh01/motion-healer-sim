@@ -512,6 +512,23 @@ const Index = () => {
             </div>
           </div>
 
+          <div className="panel rounded-md p-3 space-y-3">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em]">
+              <span className="text-muted-foreground">Network Nodes</span>
+              <span className="font-mono-display text-[hsl(var(--neon-cyan))] text-glow-cyan">{nodes}</span>
+            </div>
+            <Slider
+              value={[nodes]}
+              onValueChange={(v) => setNodes(v[0])}
+              min={6}
+              max={32}
+              step={1}
+            />
+            <div className="flex justify-between text-[10px] font-mono-display text-muted-foreground">
+              <span>6</span><span>Ring topology size</span><span>32</span>
+            </div>
+          </div>
+
           <NetworkTelemetry
             passes={passes}
             aliveCount={aliveCount}
