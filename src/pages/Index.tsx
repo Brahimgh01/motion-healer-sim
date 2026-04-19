@@ -423,7 +423,7 @@ const Index = () => {
             <span className="text-[hsl(var(--neon-green))]">LOCKED</span>
           </div>
           <div className="text-muted-foreground">RaptorQ ρ=1.35</div>
-          <div className="text-muted-foreground">12 NODES · 3 TENANTS</div>
+          <div className="text-muted-foreground">{nodes} NODES · 3 TENANTS</div>
         </div>
       </header>
 
@@ -517,14 +517,14 @@ const Index = () => {
             aliveCount={aliveCount}
             target={TARGET}
             lossRate={lossRate}
-            nodes={NODES}
+            nodes={nodes}
           />
         </aside>
 
         {/* CENTER: Ring */}
         <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line min-h-[560px] lg:min-h-0 order-first lg:order-none">
           <div className="absolute top-3 left-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            CIRCULATION RING · 12 NODES
+            CIRCULATION RING · {nodes} NODES
           </div>
           <div className="absolute top-3 right-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
             <span className="flex items-center gap-1.5">
@@ -543,7 +543,7 @@ const Index = () => {
               healerPulse={healerPulse}
               countdown={countdown}
               vaultPos={{ x: 1.08, y: 0.5 }}
-              nodes={NODES}
+              nodes={nodes}
               reconstructProgress={reconstructProgress}
               reconstructCollected={reconstructCollected}
             />
