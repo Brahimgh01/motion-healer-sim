@@ -187,13 +187,13 @@ const Index = () => {
             if (newAngle > Math.PI) newAngle -= Math.PI * 2;
 
             // Detect node crossing
-            const segment = (Math.PI * 2) / NODES;
+            const segment = (Math.PI * 2) / nodesRef.current;
             const idx = Math.floor(((newAngle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / segment);
             const prevIdx = lastNodeIdxRef.current.get(f.id);
             if (prevIdx !== undefined && prevIdx !== idx) {
               // crossed a node — apply loss
               if (ph === "running" && f.kind === "normal") {
-                const p = lossRef.current / 100 / NODES; // distribute per hop
+                const p = lossRef.current / 100 / nodesRef.current; // distribute per hop
                 if (Math.random() < p) {
                   lostThisTick++;
                   if (Math.random() < 0.4) {
@@ -238,7 +238,7 @@ const Index = () => {
                     next[i] = {
                       ...next[i],
                       alive: true,
-                      angle: -Math.PI / 2 + (5 / NODES) * Math.PI * 2 + (Math.random() * 0.2 - 0.1),
+                      angle: -Math.PI / 2 + (5 / nodesRef.current) * Math.PI * 2 + (Math.random() * 0.2 - 0.1),
                       hash: randHash(),
                     };
                     revived++;
@@ -272,7 +272,7 @@ const Index = () => {
                   const tenant = (next.length % 3) as TenantId;
                   const newF = makeFragment(
                     tenant,
-                    -Math.PI / 2 + (5 / NODES) * Math.PI * 2 + (Math.random() * 0.3 - 0.15),
+                    -Math.PI / 2 + (5 / nodesRef.current) * Math.PI * 2 + (Math.random() * 0.3 - 0.15),
                   );
                   next.push(newF);
                   healedThisTick++;
@@ -325,7 +325,7 @@ const Index = () => {
             const alive = fragmentsRef.current.filter((f) => f.alive);
             if (alive.length > 0) {
               const f = alive[Math.floor(Math.random() * alive.length)];
-              const segment = (Math.PI * 2) / NODES;
+              const segment = (Math.PI * 2) / nodesRef.current;
               const idx =
                 Math.floor(((f.angle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / segment) + 1;
               newFingerprints.push({ hash: f.hash, tenant: f.tenant, node: idx, status: "OK" });
