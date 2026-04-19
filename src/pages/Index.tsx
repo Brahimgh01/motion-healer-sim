@@ -10,7 +10,6 @@ import { EnergyFinOps } from "@/components/kinetic/EnergyFinOps";
 import { NetworkTelemetry } from "@/components/kinetic/NetworkTelemetry";
 import type { Fragment, SimPhase, TenantId } from "@/components/kinetic/types";
 
-const NODES = 12;
 const TARGET = 200;
 const ANCHOR_COUNT = 10; // 5%
 const BASE_SPEED = 0.0018; // rad/ms
@@ -61,6 +60,9 @@ const Index = () => {
   const passesAccumRef = useRef(0); // radians traveled accumulator
   const [tenantsCount, setTenantsCount] = useState(100);
   const [overlap, setOverlap] = useState(40); // %
+  const [nodes, setNodes] = useState(12);
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
   const [fingerprints, setFingerprints] = useState<
     { hash: string; tenant: number; node: number; status: "OK" | "LOST" | "ANCHOR" | "HEAL" }[]
   >([]);
@@ -185,13 +187,13 @@ const Index = () => {
             if (newAngle > Math.PI) newAngle -= Math.PI * 2;
 
             // Detect node crossing
-            const segment = (Math.PI * 2) / NODES;
+            const segment = (Math.PI * 2) / nodesRef.current;
             const idx = Math.floor(((newAngle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / segment);
             const prevIdx = lastNodeIdxRef.current.get(f.id);
             if (prevIdx !== undefined && prevIdx !== idx) {
               // crossed a node — apply loss
               if (ph === "running" && f.kind === "normal") {
-                const p = lossRef.current / 100 / NODES; // distribute per hop
+                const p = lossRef.current / 100 / nodesRef.current; // distribute per hop
                 if (Math.random() < p) {
                   lostThisTick++;
                   if (Math.random() < 0.4) {
@@ -236,7 +238,7 @@ const Index = () => {
                     next[i] = {
                       ...next[i],
                       alive: true,
-                      angle: -Math.PI / 2 + (5 / NODES) * Math.PI * 2 + (Math.random() * 0.2 - 0.1),
+                      angle: -Math.PI / 2 + (5 / nodesRef.current) * Math.PI * 2 + (Math.random() * 0.2 - 0.1),
                       hash: randHash(),
                     };
                     revived++;
@@ -270,7 +272,7 @@ const Index = () => {
                   const tenant = (next.length % 3) as TenantId;
                   const newF = makeFragment(
                     tenant,
-                    -Math.PI / 2 + (5 / NODES) * Math.PI * 2 + (Math.random() * 0.3 - 0.15),
+                    -Math.PI / 2 + (5 / nodesRef.current) * Math.PI * 2 + (Math.random() * 0.3 - 0.15),
                   );
                   next.push(newF);
                   healedThisTick++;
@@ -323,7 +325,7 @@ const Index = () => {
             const alive = fragmentsRef.current.filter((f) => f.alive);
             if (alive.length > 0) {
               const f = alive[Math.floor(Math.random() * alive.length)];
-              const segment = (Math.PI * 2) / NODES;
+              const segment = (Math.PI * 2) / nodesRef.current;
               const idx =
                 Math.floor(((f.angle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / segment) + 1;
               newFingerprints.push({ hash: f.hash, tenant: f.tenant, node: idx, status: "OK" });
@@ -421,13 +423,13 @@ const Index = () => {
             <span className="text-[hsl(var(--neon-green))]">LOCKED</span>
           </div>
           <div className="text-muted-foreground">RaptorQ ρ=1.35</div>
-          <div className="text-muted-foreground">12 NODES · 3 TENANTS</div>
+          <div className="text-muted-foreground">{nodes} NODES · 3 TENANTS</div>
         </div>
       </header>
 
-      <div className="relative z-10 grid grid-cols-12 gap-3 p-3 lg:h-[calc(100vh-57px)]">
+      <div className="relative z-10 grid grid-cols-12 gap-3 p-3">
         {/* LEFT: Real-time stats */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-2 lg:order-none">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 order-2 lg:order-none">
           <StatPanel
             label="Data Health"
             value={dataHealth}
@@ -510,19 +512,36 @@ const Index = () => {
             </div>
           </div>
 
+          <div className="panel rounded-md p-3 space-y-3">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em]">
+              <span className="text-muted-foreground">Network Nodes</span>
+              <span className="font-mono-display text-[hsl(var(--neon-cyan))] text-glow-cyan">{nodes}</span>
+            </div>
+            <Slider
+              value={[nodes]}
+              onValueChange={(v) => setNodes(v[0])}
+              min={6}
+              max={32}
+              step={1}
+            />
+            <div className="flex justify-between text-[10px] font-mono-display text-muted-foreground">
+              <span>6</span><span>Ring topology size</span><span>32</span>
+            </div>
+          </div>
+
           <NetworkTelemetry
             passes={passes}
             aliveCount={aliveCount}
             target={TARGET}
             lossRate={lossRate}
-            nodes={NODES}
+            nodes={nodes}
           />
         </aside>
 
         {/* CENTER: Ring */}
-        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line min-h-[560px] lg:min-h-0 order-first lg:order-none">
+        <main className="col-span-12 lg:col-span-6 panel rounded-md relative overflow-hidden scan-line lg:sticky lg:top-3 lg:self-start lg:h-[calc(100vh-80px)] order-first lg:order-none">
           <div className="absolute top-3 left-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            CIRCULATION RING · 12 NODES
+            CIRCULATION RING · {nodes} NODES
           </div>
           <div className="absolute top-3 right-4 z-10 font-mono-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-3">
             <span className="flex items-center gap-1.5">
@@ -534,14 +553,14 @@ const Index = () => {
           </div>
 
           {/* Canvas area — explicit height so it never collapses below controls */}
-          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)]">
+          <div className="relative w-full h-[460px] lg:h-[calc(100%-72px)] mt-9 lg:mt-0">
             <RingCanvas
               fragments={fragments}
               phase={phase}
               healerPulse={healerPulse}
               countdown={countdown}
               vaultPos={{ x: 1.08, y: 0.5 }}
-              nodes={NODES}
+              nodes={nodes}
               reconstructProgress={reconstructProgress}
               reconstructCollected={reconstructCollected}
             />
@@ -598,7 +617,7 @@ const Index = () => {
         </main>
 
         {/* RIGHT: AI Manager */}
-        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 min-h-0 order-3 lg:order-none">
+        <aside className="col-span-12 lg:col-span-3 flex flex-col gap-3 order-3 lg:order-none">
           <div className="panel rounded-md p-3">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-[hsl(var(--neon-cyan))]" />
